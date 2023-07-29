@@ -10,22 +10,29 @@ describe("Wave Contract", function () {
       value: hre.ethers.utils.parseEther("0.1"),
     });
     await waveContract.deployed();
+    const [owner, addr1] = await hre.ethers.getSigners();
 
     const contractBalanceBefore = hre.ethers.utils.formatEther(
       await hre.ethers.provider.getBalance(waveContract.address)
     );
 
-    const waveTxn = await waveContract.wave("This is wave #1");
+    const waveTxn = await waveContract.connect(addr1).wave("This is wave #1");
     await waveTxn.wait();
-    // const waveTxn2 = await waveContract.wave("This is wave #2");
-    // await waveTxn2.wait();
-    await expect(waveContract.wave("This is wave #2")).to.be.revertedWith(
-      "Wait 15m"
-    );
+    await expect(
+      waveContract.connect(addr1).wave("This is wave #2")
+    ).to.be.revertedWith("Wait a bit");
 
-    const contractBalanceAfter = hre.ethers.utils.formatEther(
-      await hre.ethers.provider.getBalance(waveContract.address)
-    );
+    // 間隔を短くする
+    await waveContract.connect(owner).setWaveWaitTime(1);
+    await hre.network.provider.send("evm_increaseTime", [1]);
+    await hre.network.provider.send("evm_mine");
+
+    const waveTxn2 = await waveContract.connect(addr1).wave("This is wave #2");
+    await waveTxn2.wait();
+
+    // const contractBalanceAfter = hre.ethers.utils.formatEther(
+    //   await hre.ethers.provider.getBalance(waveContract.address)
+    // );
 
     const allWaves = await waveContract.getAllWaves();
     // let cost = 0;
@@ -37,7 +44,7 @@ describe("Wave Contract", function () {
     // }
 
     expect(allWaves[0].message).to.equal("This is wave #1");
-    // expect(allWaves[1].message).to.equal("This is wave #2");
+    expect(allWaves[1].message).to.equal("This is wave #2");
 
     // expect(parseFloat(contractBalanceAfter)).to.equal(
     //   contractBalanceBefore - cost

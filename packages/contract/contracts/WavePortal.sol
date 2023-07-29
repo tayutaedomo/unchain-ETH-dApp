@@ -4,8 +4,11 @@ pragma solidity 0.8.18;
 import "hardhat/console.sol";
 
 contract WavePortal {
+    address owner;
     uint256 totalWaves;
     uint256 private seed;
+    uint256 prizeAmount = 0.0001 ether;
+    uint256 waveWaitTime = 15 minutes;
 
     event NewWave(address indexed from, uint256 timestamp, string message);
 
@@ -20,13 +23,31 @@ contract WavePortal {
     constructor() payable {
         console.log("We have been constructed!");
 
+        owner = msg.sender;
         seed = (block.timestamp + block.difficulty) % 100;
     }
 
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can call this function.");
+        _;
+    }
+
+    function setPrizeAmount(uint256 _amount) public onlyOwner {
+        prizeAmount = _amount;
+    }
+
+    function setWaveWaitTime(uint256 _time) public onlyOwner {
+        waveWaitTime = _time;
+    }
+
+    receive() external payable {}
+
+    function deposit() public payable onlyOwner {}
+
     function wave(string memory _message) public {
         require(
-            lastWavedAt[msg.sender] + 15 minutes < block.timestamp,
-            "Wait 15m"
+            lastWavedAt[msg.sender] + waveWaitTime < block.timestamp,
+            "Wait a bit"
         );
         lastWavedAt[msg.sender] = block.timestamp;
 
@@ -40,7 +61,6 @@ contract WavePortal {
         console.log("Random # generated: %d", seed);
 
         if (seed <= 50) {
-            uint256 prizeAmount = 0.0001 ether;
             require(
                 prizeAmount <= address(this).balance,
                 "Trying to withdraw more money than the contract has."
