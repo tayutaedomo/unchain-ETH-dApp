@@ -19,7 +19,7 @@
   },
   "scripts": {
     "run:script": "npx hardhat run scripts/run.js",
-    "test": "npx hardhat test",
+    "test": "npx hardhat test scripts/test.js",
     "deploy": "npx hardhat run scripts/deploy.js --network sepolia",
     "deploy:localhost": "npx hardhat run scripts/deploy.js --network localhost",
     "start": "npx hardhat node"
