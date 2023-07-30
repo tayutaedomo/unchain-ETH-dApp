@@ -131,6 +131,14 @@ const App = () => {
         const count1 = await wavePortalContract.getTotalWaves();
         console.log("Retrieved total wave count...", count1.toNumber());
 
+        const contractBalance = await provider.getBalance(
+          wavePortalContract.address
+        );
+        console.log(
+          "Contract balance:",
+          ethers.utils.formatEther(contractBalance)
+        );
+
         const waveTxn = await wavePortalContract.wave(messageValue, {
           gasLimit: 300000,
         });
@@ -140,6 +148,23 @@ const App = () => {
 
         const count2 = await wavePortalContract.getTotalWaves();
         console.log("Retrieved total wave count...", count2.toNumber());
+
+        const contractBalancePost = await provider.getBalance(
+          wavePortalContract.address
+        );
+        console.log(
+          "Contract balance:",
+          ethers.utils.formatEther(contractBalance)
+        );
+        if (contractBalancePost.lt(contractBalance)) {
+          console.log("User won ETH!");
+        } else {
+          console.log("User didn't win ETH.");
+        }
+        console.log(
+          "Contract balance after wave:",
+          ethers.utils.formatEther(contractBalancePost)
+        );
       } else {
         console.log("Ethereum object doesn't exist!");
       }
